@@ -11,6 +11,13 @@ import {
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
+async function Wallet_Connect(){
+  if (typeof window.ethereum !== 'undefined') {
+    console.log('MetaMask is installed!');
+    window.ethereum.request({ method: 'eth_requestAccounts' });
+  }
+}
+
 function Navbar() {
 
 const [connected, toggleConnect] = useState(false);
@@ -59,7 +66,27 @@ const [currAddress, updateAddress] = useState('0x');
               </li>              
               }  
               <li>
-                <button className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">{connected? "Connected":"Connect Wallet"}</button>
+                <button className="enableEthereumButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm" onClick={async(e)=>
+                  {
+                  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                  const account = accounts[0];
+                  console.log(account);
+                  updateAddress(account);
+                  toggleConnect(window.ethereum.isConnected());
+                  const chainID = await window.ethereum.request({ method: 'eth_chainId' })
+                  console.log("networks", chainID);
+
+                  if (chainID != "0x5"){
+                    console.log("Network error");
+                    await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x5' }],
+                    });
+                  }else
+                  {
+                    console.log("Network okay");
+                  }
+                  }}>{connected? "Connected":"Connect Wallet"}</button>
               </li>
             </ul>
           </li>
